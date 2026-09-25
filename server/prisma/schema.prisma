@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  Plan      Plan[]
+  Itinerary Itinerary?
+  isAdmin   Boolean    @default(false) //admin
+  Comment   Comment[]
+}
+
+model Plan {
+  id        Int         @id @default(autoincrement())
+  time      DateTime
+  place     String
+  length    Float
+  creator   User        @relation(fields: [creatorId], references: [id])
+  creatorId Int
+  itinerary Itinerary[] // Many-to-many relationship with Itinerary
+  comments  Comment[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  creator   User     @relation(fields: [creatorId], references: [id])
+  plan      Plan     @relation(fields: [planId], references: [id])
+  creatorId Int
+  planId    Int
+}
+
+model Itinerary {
+  id     Int    @id @default(autoincrement())
+  user   User?  @relation(fields: [userId], references: [id])
+  userId Int    @unique
+  plans  Plan[] // Many-to-many relationship with Plan
+}
